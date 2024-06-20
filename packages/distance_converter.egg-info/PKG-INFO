@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: distance_converter
+Version: 0.1
+Summary: Convert distances to various units
+Author: Your Name
+Author-email: your.email@example.com
+Keywords: distance,conversion,units
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Education
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
