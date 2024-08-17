@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Follower with Gravity</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;  /* Prevent scrolling in the browser window */
+        }
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            touch-action: none; /* Disable default touch actions like scrolling */
+        }
+        #circle {
+            width: 40px;
+            height: 40px;
+            background-color: blue;
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <div id="circle"></div>
+    </div>
+
+    <script>
+        const circle = document.getElementById('circle');
+        const container = document.getElementById('canvas-container');
+        
+        let isDragging = false;
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+
+        let x = window.innerWidth / 2;
+        let y = window.innerHeight / 2;
+        let velocityX = 0;
+        let velocityY = 0;
+
+        const gravityStrength = 0.05;
+        const friction = 0.3;
+        const moveSpeed = 0.5;
+
+        // Speed factor to control the speed of the object
+        const speedFactor = 0.1; // Adjust this value to change the speed
+
+        container.addEventListener('mousedown', function(event) {
+            isDragging = true;
+            updateTargetPosition(event);
+        });
+
+        container.addEventListener('mousemove', function(event) {
+            if (isDragging) {
+                updateTargetPosition(event);
+            }
+        });
+
+        container.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+
+        container.addEventListener('touchstart', function(event) {
+            isDragging = true;
+            updateTargetPosition(event.touches[0]);
+            event.preventDefault(); // Prevent scrolling
+        });
+
+        container.addEventListener('touchmove', function(event) {
+            if (isDragging) {
+                updateTargetPosition(event.touches[0]);
+                event.preventDefault(); // Prevent scrolling
+            }
+        });
+
+        container.addEventListener('touchend', function() {
+            isDragging = false;
+        });
+
+        function updateTargetPosition(event) {
+            mouseX = event.clientX;
+            mouseY = event.clientY;
+        }
+
+        function animate() {
+            const centerX = window.innerWidth / 2;
+            const centerY = window.innerHeight / 2;
+
+            // Calculate direction towards mouse
+            let directionX = mouseX - x;
+            let directionY = mouseY - y;
+
+            // Apply movement towards mouse with speed factor
+            velocityX += directionX * moveSpeed * speedFactor;
+            velocityY += directionY * moveSpeed * speedFactor;
+
+            // Apply gravity towards center with speed factor
+            const gravityX = (centerX - x) * gravityStrength * speedFactor;
+            const gravityY = (centerY - y) * gravityStrength * speedFactor;
+
+            velocityX += gravityX;
+            velocityY += gravityY;
+
+            // Apply friction
+            velocityX *= friction;
+            velocityY *= friction;
+
+            // Update position
+            x += velocityX;
+            y += velocityY;
+
+            // Update circle position
+            circle.style.left = `${x - circle.offsetWidth / 2}px`;
+            circle.style.top = `${y - circle.offsetHeight / 2}px`;
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

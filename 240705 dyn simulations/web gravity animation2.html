@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circle Follower with Gravity</title>
+    <style>
+        body, html {
+            height: 100%;
+            margin: 0;
+            background-color: #f0f0f0;
+            overflow: hidden;  /* Prevent scrolling in the browser window */
+        }
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            touch-action: none; /* Disable default touch actions like scrolling */
+        }
+        #circle {
+            width: 40px;
+            height: 40px;
+            background-color: blue;
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        #gravity-point {
+            width: 20px;
+            height: 20px;
+            background-color: red;
+            border-radius: 50%;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none; /* Allow clicks to pass through the gravity point */
+        }
+    </style>
+</head>
+<body>
+    <!-- 
+    This page demonstrates a simple animation where a blue circle follows a dynamic gravity point.
+    The gravity point is initially located at the center of the screen. When the user clicks or touches
+    the screen, the gravity point moves to that location. The blue circle moves towards the gravity point
+    and slows down as it gets closer. The movement is influenced by gravity and friction.
+    A visual red dot indicates the current position of the gravity point.
+    -->
+
+    <div id="canvas-container">
+        <div id="circle"></div>
+        <div id="gravity-point"></div>
+    </div>
+
+    <script>
+        const circle = document.getElementById('circle');
+        const gravityPoint = document.getElementById('gravity-point');
+        const container = document.getElementById('canvas-container');
+        
+        let isInteracting = false;
+        let mouseX = window.innerWidth / 2;
+        let mouseY = window.innerHeight / 2;
+
+        let x = window.innerWidth / 2;
+        let y = window.innerHeight / 2;
+        let velocityX = 0;
+        let velocityY = 0;
+
+        const gravityStrength = 0.05;
+        const friction = 0.9;
+        const moveSpeed = 0.1;
+        const speedFactor = 0.5;
+
+        container.addEventListener('mousedown', function(event) {
+            isInteracting = true;
+            updateGravityPoint(event.clientX, event.clientY);
+        });
+
+        container.addEventListener('mousemove', function(event) {
+            if (isInteracting) {
+                updateGravityPoint(event.clientX, event.clientY);
+            }
+        });
+
+        container.addEventListener('mouseup', function() {
+            isInteracting = false;
+            resetGravityPoint();
+        });
+
+        container.addEventListener('touchstart', function(event) {
+            isInteracting = true;
+            updateGravityPoint(event.touches[0].clientX, event.touches[0].clientY);
+            event.preventDefault(); // Prevent scrolling
+        });
+
+        container.addEventListener('touchmove', function(event) {
+            if (isInteracting) {
+                updateGravityPoint(event.touches[0].clientX, event.touches[0].clientY);
+                event.preventDefault(); // Prevent scrolling
+            }
+        });
+
+        container.addEventListener('touchend', function() {
+            isInteracting = false;
+            resetGravityPoint();
+        });
+
+        function updateGravityPoint(x, y) {
+            mouseX = x;
+            mouseY = y;
+            gravityPoint.style.left = `${mouseX - gravityPoint.offsetWidth / 2}px`;
+            gravityPoint.style.top = `${mouseY - gravityPoint.offsetHeight / 2}px`;
+        }
+
+        function resetGravityPoint() {
+            mouseX = window.innerWidth / 2;
+            mouseY = window.innerHeight / 2;
+            gravityPoint.style.left = `calc(50% - ${gravityPoint.offsetWidth / 2}px)`;
+            gravityPoint.style.top = `calc(50% - ${gravityPoint.offsetHeight / 2}px)`;
+        }
+
+        function animate() {
+            // Calculate direction towards gravity point
+            let directionX = mouseX - x;
+            let directionY = mouseY - y;
+
+            // Apply movement towards gravity point with speed factor
+            velocityX += directionX * moveSpeed * speedFactor;
+            velocityY += directionY * moveSpeed * speedFactor;
+
+            // Apply friction
+            velocityX *= friction;
+            velocityY *= friction;
+
+            // Update position
+            x += velocityX;
+            y += velocityY;
+
+            // Update circle position
+            circle.style.left = `${x - circle.offsetWidth / 2}px`;
+            circle.style.top = `${y - circle.offsetHeight / 2}px`;
+
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+</html>
+

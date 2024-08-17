@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #87CEEB; /* Light blue background */
+        }
+        .aquarium {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .fish {
+            position: absolute;
+            width: 50px;
+            height: 30px;
+            border-radius: 50%;
+        }
+        .big-fish {
+            width: 100px;
+            height: 60px;
+            background-color: orange;
+        }
+        .heading {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 24px;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="aquarium">
+    <div class="heading">Fish Sim v0.2</div>
+    <div id="bigFish" class="fish big-fish"></div>
+    <div id="fish1" class="fish" style="background-color: red;"></div>
+    <div id="fish2" class="fish" style="background-color: green;"></div>
+    <div id="fish3" class="fish" style="background-color: blue;"></div>
+</div>
+
+<script>
+    /**
+     * Fish Simulation v0.2
+     * This version adds the concept of mass to each fish, affecting inertia and repulsive forces.
+     * - The mass influences how quickly each fish accelerates or decelerates, with heavier fish being less affected by forces.
+     * - The big fish moves in a random walk, and small fish follow while maintaining distance.
+     * - Repulsive forces prevent overlap, and friction ensures smooth deceleration.
+     */
+
+    const bigFish = document.getElementById('bigFish');
+    const smallFish = [
+        { element: document.getElementById('fish1'), mass: 3 },
+        { element: document.getElementById('fish2'), mass: 2 },
+        { element: document.getElementById('fish3'), mass: 1.5 }
+    ];
+
+    let bigFishX = window.innerWidth / 2;
+    let bigFishY = window.innerHeight / 2;
+
+    let velocityX = 0;
+    let velocityY = 0;
+
+    const speedLimit = 1.5; // Reduced speed limit for smoother motion
+    const friction = 0.95;  // Increased friction for more inertia (smoother acceleration/deceleration)
+
+    // Initialize positions of small fish farther away from the big fish
+    smallFish.forEach(fish => {
+        const angle = Math.random() * 2 * Math.PI;
+        const distance = 200 + Math.random() * 100; // Distance between 200 and 300 pixels from the big fish
+        fish.element.style.left = (bigFishX + Math.cos(angle) * distance) + 'px';
+        fish.element.style.top = (bigFishY + Math.sin(angle) * distance) + 'px';
+        fish.velocityX = 0;
+        fish.velocityY = 0;
+    });
+
+    function randomWalk() {
+        const angle = Math.random() * 2 * Math.PI;
+        velocityX += Math.cos(angle) * 0.1;
+        velocityY += Math.sin(angle) * 0.1;
+
+        velocityX = Math.max(-speedLimit, Math.min(speedLimit, velocityX));
+        velocityY = Math.max(-speedLimit, Math.min(speedLimit, velocityY));
+
+        bigFishX += velocityX;
+        bigFishY += velocityY;
+
+        bigFishX = Math.max(0, Math.min(window.innerWidth - 100, bigFishX));
+        bigFishY = Math.max(0, Math.min(window.innerHeight - 60, bigFishY));
+
+        bigFish.style.left = bigFishX + 'px';
+        bigFish.style.top = bigFishY + 'px';
+
+        smallFish.forEach(fish => {
+            let fishX = parseFloat(fish.element.style.left);
+            let fishY = parseFloat(fish.element.style.top);
+
+            let dx = bigFishX - fishX;
+            let dy = bigFishY - fishY;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            const targetDistance = 100;
+            let followSpeed = 1.0 / fish.mass; // Speed inversely proportional to mass
+            if (distance > targetDistance) {
+                fish.velocityX += (dx / distance) * followSpeed;
+                fish.velocityY += (dy / distance) * followSpeed;
+            }
+
+            // Apply repulsive spring force between fish
+            smallFish.forEach(otherFish => {
+                if (fish !== otherFish) {
+                    let otherX = parseFloat(otherFish.element.style.left);
+                    let otherY = parseFloat(otherFish.element.style.top);
+
+                    let ddx = fishX - otherX;
+                    let ddy = fishY - otherY;
+                    let dist = Math.sqrt(ddx * ddx + ddy * ddy);
+
+                    const minDistance = 60; // Minimum distance to maintain between fish
+                    if (dist < minDistance) {
+                        const repulsiveForce = 0.2 * (minDistance - dist) / fish.mass; // Repulsive force affected by mass
+                        fish.velocityX += (ddx / dist) * repulsiveForce;
+                        fish.velocityY += (ddy / dist) * repulsiveForce;
+                    }
+                }
+            });
+
+            // Apply inertia and friction
+            fish.velocityX *= friction;
+            fish.velocityY *= friction;
+
+            fishX += fish.velocityX;
+            fishY += fish.velocityY;
+
+            fishX = Math.max(0, Math.min(window.innerWidth - 50, fishX));
+            fishY = Math.max(0, Math.min(window.innerHeight - 30, fishY));
+
+            fish.element.style.left = fishX + 'px';
+            fish.element.style.top = fishY + 'px';
+        });
+
+        // Apply friction to slow down velocity gradually
+        velocityX *= friction;
+        velocityY *= friction;
+    }
+
+    function animate() {
+        randomWalk();
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
+
+</body>
+</html>
